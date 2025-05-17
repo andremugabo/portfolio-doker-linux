@@ -1,0 +1,74 @@
+version: '3.8'
+
+networks:
+  traefik_net:
+    external: true
+
+services:
+  traefik:
+    image: traefik:v2.4
+    container_name: traefik
+    ports:
+      - "8080:8080"
+      - "8444:8444"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/config/traefik.yml:/etc/traefik/traefik.yml
+      - ./traefik/config/acme.json:/acme.json
+      - ./traefik/config/users:/etc/traefik/users
+    networks:
+      - traefik_net
+
+  frontend:
+    build: ./portfolio-frontend
+    image: 25337-frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`portfolio-25337.auca.ac.rw`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend-secure.rule=Host(`portfolio-25337.auca.ac.rw`)"
+      - "traefik.http.routers.frontend-secure.entrypoints=websecure"
+      - "traefik.http.routers.frontend-secure.tls.certresolver=myresolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - traefik_net
+    depends_on:
+      - backend
+
+  backend:
+    build: ./portfolio-backend
+    image: 25337-backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api-25337.auca.ac.rw`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend-secure.rule=Host(`api-25337.auca.ac.rw`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-secure.entrypoints=websecure"
+      - "traefik.http.routers.backend-secure.tls.certresolver=myresolver"
+      - "traefik.http.services.backend.loadbalancer.server.port=5000"
+      - "traefik.http.middlewares.strip-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.backend.middlewares=strip-prefix"
+      - "traefik.http.routers.backend-secure.middlewares=strip-prefix"
+    networks:
+      - traefik_net
+    environment:
+      - DB_HOST=database
+      - DB_USER=portfolio_user
+      - DB_PASSWORD=userpassword
+      - DB_NAME=portfolio
+
+  database:
+    image: mysql:5.7
+    container_name: 25337-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: securepassword
+      MYSQL_DATABASE: portfolio
+      MYSQL_USER: portfolio_user
+      MYSQL_PASSWORD: userpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - traefik_net
+
+volumes:
+  mysql_data:

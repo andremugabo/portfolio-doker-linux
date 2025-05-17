@@ -1,0 +1,19 @@
+# Docker
+**/node_modules/
+**/dist/
+**/build/
+
+# Traefik
+traefik/config/acme.json
+traefik/config/users
+
+# Environment files
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+
+# Docker compose
+docker-compose.override.yml
