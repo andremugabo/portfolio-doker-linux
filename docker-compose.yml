@@ -45,7 +45,7 @@ services:
       - "traefik.http.routers.backend-secure.rule=Host(`api-25337.auca.ac.rw`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend-secure.entrypoints=websecure"
       - "traefik.http.routers.backend-secure.tls.certresolver=myresolver"
-      - "traefik.http.services.backend.loadbalancer.server.port=5000"
+      - "traefik.http.services.backend.loadbalancer.server.port=3001"
       - "traefik.http.middlewares.strip-prefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.backend.middlewares=strip-prefix"
       - "traefik.http.routers.backend-secure.middlewares=strip-prefix"
@@ -53,22 +53,23 @@ services:
       - traefik_net
     environment:
       - DB_HOST=database
-      - DB_USER=portfolio_user
-      - DB_PASSWORD=userpassword
-      - DB_NAME=portfolio
+      - DB_USER=postgres
+      - DB_PASSWORD=123
+      - DB_NAME=portfolio_linux_db
+    depends_on:
+      - database
 
   database:
-    image: mysql:5.7
-    container_name: 25337-mysql
+    image: postgres:13
+    container_name: portfolio-postgres
     environment:
-      MYSQL_ROOT_PASSWORD: securepassword
-      MYSQL_DATABASE: portfolio
-      MYSQL_USER: portfolio_user
-      MYSQL_PASSWORD: userpassword
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: portfolio_linux_db
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - traefik_net
 
 volumes:
-  mysql_data:
+  postgres_data:
