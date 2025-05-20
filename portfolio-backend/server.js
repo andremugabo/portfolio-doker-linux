@@ -3,7 +3,9 @@ const cors = require('cors');
 const { Pool } = require('pg');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:8081', 'http://portfolio-25337.auca.ac.rw:8081']
+}));
 app.use(express.json());
 
 
@@ -11,7 +13,7 @@ app.use(express.json());
 // PostgreSQL connection
 const pool = new Pool({
   user: 'postgres',
-  host: 'localhost',
+  host: 'database',
   database: 'portfolio_linux_db',
   password: '123',
   port: 5432,

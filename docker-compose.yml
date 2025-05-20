@@ -9,8 +9,8 @@ services:
     image: traefik:v2.4
     container_name: traefik
     ports:
-      - "8080:8080"
-      - "8444:8444"
+      - "8081:8081"
+      - "8445:8445"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/config/traefik.yml:/etc/traefik/traefik.yml
@@ -24,11 +24,8 @@ services:
     image: 25337-frontend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`portfolio-25337.auca.ac.rw`)"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`) || PathPrefix(`/`)"
       - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.routers.frontend-secure.rule=Host(`portfolio-25337.auca.ac.rw`)"
-      - "traefik.http.routers.frontend-secure.entrypoints=websecure"
-      - "traefik.http.routers.frontend-secure.tls.certresolver=myresolver"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     networks:
       - traefik_net
@@ -38,17 +35,14 @@ services:
   backend:
     build: ./portfolio-backend
     image: 25337-backend
+    ports:
+    - "3001:3001" 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`api-25337.auca.ac.rw`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.entrypoints=web"
-      - "traefik.http.routers.backend-secure.rule=Host(`api-25337.auca.ac.rw`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.backend-secure.entrypoints=websecure"
-      - "traefik.http.routers.backend-secure.tls.certresolver=myresolver"
-      - "traefik.http.services.backend.loadbalancer.server.port=3001"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
       - "traefik.http.middlewares.strip-prefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.backend.middlewares=strip-prefix"
-      - "traefik.http.routers.backend-secure.middlewares=strip-prefix"
+      - "traefik.http.services.backend.loadbalancer.server.port=3001"
     networks:
       - traefik_net
     environment:
@@ -58,6 +52,8 @@ services:
       - DB_NAME=portfolio_linux_db
     depends_on:
       - database
+    database:
+      condition: service_healthy
 
   database:
     image: postgres:13
@@ -70,6 +66,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - traefik_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5  
 
 volumes:
   postgres_data:

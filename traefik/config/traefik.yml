@@ -1,12 +1,13 @@
 api:
   dashboard: true
-  insecure: true  # For development only
+  insecure: false  
+  debug: true      
 
 entryPoints:
   web:
-    address: ":8080"
+    address: ":8081"
   websecure:
-    address: ":8444"
+    address: ":8445"
 
 providers:
   docker:
@@ -18,6 +19,7 @@ certificatesResolvers:
   myresolver:
     acme:
       email: andre.mugabo@auca.ac.rw
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory" 
       storage: acme.json
       httpChallenge:
         entryPoint: web

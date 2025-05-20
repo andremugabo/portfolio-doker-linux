@@ -17,7 +17,7 @@ toggle.addEventListener("change", () => {
   applyTheme(next);
 });
 
-const apiUrl = `http://localhost:3001/api/profile`;
+const apiUrl = `/api/profile`;
 
 fetch(apiUrl)
     .then((res) => {
