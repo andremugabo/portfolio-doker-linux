@@ -5,9 +5,9 @@ api:
 
 entryPoints:
   web:
-    address: ":8081"
+    address: ":80"
   websecure:
-    address: ":8445"
+    address: ":446"
 
 providers:
   docker:

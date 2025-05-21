@@ -6,11 +6,12 @@ networks:
 
 services:
   traefik:
-    image: traefik:v2.4
+    image: traefik:v2.10
     container_name: traefik
     ports:
-      - "8081:8081"
-      - "8445:8445"
+      - "85:85"
+      - "446:446"
+      - "8085:8085"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/config/traefik.yml:/etc/traefik/traefik.yml
@@ -21,10 +22,10 @@ services:
 
   frontend:
     build: ./portfolio-frontend
-    image: 25337-frontend
+    image: portfolio-frontend-25337
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`localhost`) || PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.rule=Host(`portfolio.mugabo.rw`)"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     networks:
@@ -34,12 +35,12 @@ services:
 
   backend:
     build: ./portfolio-backend
-    image: 25337-backend
+    image: portfolio-backend-25337
     ports:
     - "3001:3001" 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.rule=Host(`api.portfolio.mugabo.rw`) && PathPrefix(`/api`)"
       - "traefik.http.middlewares.strip-prefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.backend.middlewares=strip-prefix"
       - "traefik.http.services.backend.loadbalancer.server.port=3001"
@@ -52,8 +53,6 @@ services:
       - DB_NAME=portfolio_linux_db
     depends_on:
       - database
-    database:
-      condition: service_healthy
 
   database:
     image: postgres:13
@@ -71,6 +70,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5  
+    
 
 volumes:
   postgres_data:

@@ -17,7 +17,9 @@ toggle.addEventListener("change", () => {
   applyTheme(next);
 });
 
-const apiUrl = `/api/profile`;
+const apiUrl = `https://api.portfolio.mugabo.rw/api/profile`;
+
+
 
 fetch(apiUrl)
     .then((res) => {
